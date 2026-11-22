@@ -1,4 +1,3 @@
-Gdscript
 extends Node3D
 
 func _ready():
@@ -8,12 +7,21 @@ func _ready():
     create_player()
 
 func create_world():
+    var ground = StaticBody3D.new()
+    ground.position.y = -0.1
+    add_child(ground)
+
     var floor = MeshInstance3D.new()
     var mesh = BoxMesh.new()
     mesh.size = Vector3(20, 0.2, 20)
     floor.mesh = mesh
-    floor.position.y = -0.1
-    add_child(floor)
+    ground.add_child(floor)
+
+    var collision = CollisionShape3D.new()
+    var shape = BoxShape3D.new()
+    shape.size = Vector3(20, 0.2, 20)
+    collision.shape = shape
+    ground.add_child(collision)
 
     var camera = Camera3D.new()
     camera.position = Vector3(0, 8, 12)
