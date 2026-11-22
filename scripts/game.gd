@@ -1,6 +1,7 @@
 extends Node3D
 
 func _ready():
+create_mobile_controls()
     create_world()
     create_disco_ball()
     create_disco_lights()
