@@ -1,12 +1,11 @@
 Gdscript
 extends Node3D
 
-var disco_lights = []
-
 func _ready():
     create_world()
     create_disco_ball()
     create_disco_lights()
+    create_player()
 
 func create_world():
     var floor = MeshInstance3D.new()
@@ -28,26 +27,18 @@ func create_disco_ball():
     add_child(ball)
 
 func create_disco_lights():
-    var colours = [
-        Color.RED,
-        Color.BLUE,
-        Color.GREEN,
-        Color.PURPLE
-    ]
+    var colours = [Color.RED, Color.BLUE, Color.GREEN, Color.PURPLE]
 
     for i in range(4):
         var light = OmniLight3D.new()
         light.light_color = colours[i]
-        light.position = Vector3(
-            cos(i * PI / 2) * 5,
-            3,
-            sin(i * PI / 2) * 5
-        )
+        light.position = Vector3(cos(i * PI / 2) * 5, 3, sin(i * PI / 2) * 5)
         light.omni_range = 12
         light.light_energy = 3
         add_child(light)
-        disco_lights.append(light)
 
-func _process(delta):
-    for i in range(disco_lights.size()):
-        disco_lights[i].rotate_y(delta)
+func create_player():
+    var player = CharacterBody3D.new()
+    player.set_script(load("res://scripts/player.gd"))
+    player.position = Vector3(0, 1, 0)
+    add_child(player)
