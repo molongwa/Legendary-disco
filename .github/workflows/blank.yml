@@ -3,7 +3,10 @@ name: Build Legendary Disco Android APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [main]
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -13,23 +16,58 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
+      - name: Make project writable
+        run: |
+          chmod -R u+rwX .
+          mkdir -p build ~/.android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
+        run: |
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;23.2.8568313" "cmake;3.10.2.4988404"
+
+      - name: Create debug keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore "$HOME/.android/debug.keystore" \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Setup Godot
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.3.0
           use-dotnet: false
 
-      - name: Install Android export templates
+      - name: Install export templates
         run: |
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable
           wget -O templates.tpz https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_export_templates.tpz
           unzip -q templates.tpz -d templates
-          mkdir -p ~/.local/share/godot/export_templates/4.3.stable
-          cp templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/ || true
+          cp templates/templates/* ~/.local/share/godot/export_templates/4.3.stable/
 
-      - name: Export Android APK
+      - name: Export APK
         run: |
-          mkdir -p build
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore" \
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey" \
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android" \
+          godot --headless --path . --editor --quit
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore" \
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey" \
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android" \
           godot --headless --path . --export-debug "Android" build/Legendary-Disco.apk
 
       - name: Upload APK
