@@ -4,7 +4,10 @@ func _ready():
     create_world()
     create_disco_ball()
     create_disco_lights()
-    create_player()
+    func create_mobile_controls():
+    var controls = CanvasLayer.new()
+    controls.set_script(load("res://scripts/mobile_controls.gd"))
+    add_child(controls)
 
 func create_world():
     var ground = StaticBody3D.new()
